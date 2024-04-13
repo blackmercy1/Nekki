@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 
+//Main объект данного проекта, он являеется корневым и самым высоким в цепочки иерархии 
 public class GameCoreController : MonoBehaviour
 {
    
@@ -13,12 +13,46 @@ public abstract class EntityFactory
     public abstract IEntity CreateEntity();
 }
 
-public sealed class WizardEntityFactory : EntityFactory
+public sealed class WizardEntityCreator : EntityFactory
 {
+    private readonly WizardConfig _wizardConfig;
+
+    public WizardEntityCreator(WizardConfig wizardConfig)
+    {
+        _wizardConfig = wizardConfig;
+    }
+    
     public override IEntity CreateEntity()
     {
-        return null;
-        // return new Wizard();
+        return new Wizard(
+            _wizardConfig.Teams,
+            _wizardConfig.CollisionComponent,
+            _wizardConfig.Stats);
+    }
+}
+
+[CreateAssetMenu(fileName = "WizardConfig", menuName = "ScriptableObject/Configs/WizardConfig")]
+public sealed class WizardConfig : ScriptableObject
+{
+    [SerializeField] private MemberTeams _teams;
+    [SerializeField] private CollisionComponent _collisionComponent;
+    
+    [SerializeField] private int _healthValue;
+    [SerializeField] private int _damageValue;
+    [SerializeField] private int _defenceValue;
+    
+    public Stats Stats => _stats;
+    public MemberTeams Teams => _teams;
+    public CollisionComponent CollisionComponent => _collisionComponent;
+
+    private readonly Stats _stats;
+    
+    private void Awake()
+    {   
+        _stats
+            .Add(new Health("health", _healthValue))
+            .Add(new Damage("damage", _damageValue))
+            .Add(new Defence("defence", _defenceValue));
     }
 }
 
@@ -28,11 +62,33 @@ public sealed class WizardInstaller : MonoBehaviour
     [SerializeField] private WizardConfig _wizardConfig;
 }
 
-[CreateAssetMenu(fileName = "WizardConfig", menuName = "ScriptableObject/Configs/WizardConfig")]
-public sealed class WizardConfig : ScriptableObject
+public sealed class WarriorInstaller : MonoBehaviour
 {
+    public GameObject Prefab => _prefab;
+    public WarriorConfig WizardConfig => _wizardConfig;
+    
+    [SerializeField] private GameObject _prefab;
+    [SerializeField] private WarriorConfig _wizardConfig;
+
+    private void Awake()
+    {
+        
+    }
+}
+
+[CreateAssetMenu(fileName = "WizardConfig", menuName = "ScriptableObject/Configs/WarriorConfig")]
+public sealed class WarriorConfig : ScriptableObject
+{
+    [SerializeField] private CollisionComponent _collisionComponent;
     [SerializeField] private MemberTeams _teams;
     
+    // TODO - можно сделать int(можно взять даже тип поменьше, если нам не нужны космические значения)
+    // кастомной структорой с валидацией, т.к наши значения с высокой долей вероятности не будут уходить в минус
+    [SerializeField] private int _healthValue;
+    [SerializeField] private int _damageValue;
+    [SerializeField] private int _defenceValue;
+
+    public CollisionComponent CollisionComponent => _collisionComponent;
     public Stats Stats => _stats;
     public MemberTeams Teams => _teams;
     
@@ -41,25 +97,28 @@ public sealed class WizardConfig : ScriptableObject
     private void Awake()
     {   
         _stats
-            .Add(new Health())
-            .Add(new Damage())
-            .Add(new Defence());
+            .Add(new Health("health", _healthValue))
+            .Add(new Damage("damage", _damageValue))
+            .Add(new Defence("defence", _defenceValue));
     }
 }
 
-
-//Две разные фабрики, потому что в реальности сщуности могут отличаться и иметь различный набор параметро
+//Два разных фабричных метода (хотя в данном случае их можно объединить), потому что в реальности сщуности могут отличаться и иметь различный набор параметро
 public sealed class WarriorEntityCreator : EntityFactory
 {
-    public WarriorEntityCreator()
-    {
-        
-    }
+    private readonly WarriorConfig _config;
     
+    public WarriorEntityCreator(WarriorConfig config)
+    {
+        _config = config;
+    }
+
     public override IEntity CreateEntity()
     {
-        // return new Warrior();
-        return null;
+        return new Warrior(
+            _config.Teams,
+            _config.CollisionComponent,
+            _config.Stats);
     }
 }
 
@@ -76,7 +135,7 @@ public sealed class Wizard : IEntity, IDamageable
 
     private Stats _stats;
 
-    public Wizard(CollisionComponent collisionComponent, MemberTeams teams, Stats stats)
+    public Wizard(MemberTeams teams, CollisionComponent collisionComponent, Stats stats)
     {
         CollisionComponent = collisionComponent;
         Teams = teams;
@@ -128,6 +187,7 @@ public interface IMember
     MemberTeams Teams { get;}
 }
 
+[Serializable]
 public enum MemberTeams
 {
     Red,
@@ -210,7 +270,7 @@ public struct Defence : ITypeStat<int>
     private readonly string _id;
     private int _value;
     
-    public Defence(int value, string id)
+    public Defence(string id, int value)
     {
         _value = value;
         _id = id;
@@ -234,7 +294,7 @@ public struct Damage : ITypeStat<int>
     private readonly string _id;
     private int _value;
     
-    public Damage(int value, string id)
+    public Damage(string id, int value)
     {
         _id = id;
         _value = value;
@@ -261,6 +321,7 @@ public interface IStats<T>
 
 public interface ITypeStat<T> : IStat<T>
 {
+    //в качестве id была выбрана string, да она медлеенее, но зато дебажить ее намного проще
     string Id();
 }
 
@@ -296,6 +357,7 @@ public class GenericStats<T> : IStats<T>
     }
 }
 
+//Класс для работы со статами, в данном случае int но при желании это легко можно поменять или дополнить
 public class Stats : IStats<int>
 {
     private readonly GenericStats<int> _intStats;
