@@ -1,4 +1,4 @@
-public struct Damage : ITypeStat<int>
+public class Damage : ITypeStat<int>
 {
     private readonly string _id;
     private int _value;

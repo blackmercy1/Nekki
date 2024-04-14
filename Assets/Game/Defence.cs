@@ -1,4 +1,4 @@
-public struct Defence : ITypeStat<int>
+public class Defence : ITypeStat<int>
 {
     private readonly string _id;
     private int _value;

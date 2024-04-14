@@ -4,28 +4,59 @@ using Ranges;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
+//TODO : тут надо generic мутить
+//todo: Алеша пж удали меня, не забудь и сделай generic
 public sealed class WarriorInstaller : MonoBehaviour
 {
     [SerializeField] private WarriorConfig _wizardConfig;
     [SerializeField] private GameObject _prefab;
+
+    private WarriorEntityCreator _entityCreator;
+    private GameArea _gameArea;
+    private RandomLoopTimer _timer;
+    private bool _isInitialized;
+
+    private void Awake() => Install();
     
-    public WarriorConfig WizardConfig => _wizardConfig;
-    public GameObject Prefab => _prefab;
-    
-    private void Awake()
+    public void Initialize(RandomLoopTimer timer)
     {
+        _timer = timer;
+        _timer.TimIsUp += TryToSpawnWarrior;
     }
+
+    //todo : сюда можно запихать пул чтобы была проверка на то сколько сейчас врагов на сцене 
+    private void TryToSpawnWarrior()
+    {
+        var handler = HandlerSpawnWarrior();
+        handler.Handle(_entityCreator);
+    }
+
+    private void Install()
+    {
+        // DestroyInstaller();
+    }
+    
+    private IHandler<Warrior> HandlerSpawnWarrior()
+    {
+        _entityCreator = new WarriorEntityCreator(_wizardConfig, _prefab);
+        var generatorHandler = new EnemyGeneratorHandle<Warrior>();
+        var positionHandler = new PositionHandler<Warrior>(_gameArea);
+        
+        return generatorHandler.SetNext(positionHandler);
+    }
+
+    private void DestroyInstaller() => Destroy(gameObject);
 }
 
 public class Generator<T> : IDisposable where T : MonoBehaviour
 {
-    public event Action<IEntity> Spawned;
+    public event Action<T> Spawned;
 
     private readonly IPlacer<T> _placer;
-    private readonly EnityCreator _entityCreator;
+    private readonly EnityCreator<T> _entityCreator;
     private readonly RandomLoopTimer _timer; 
     
-    public Generator(RandomLoopTimer timer, EnityCreator entityCreator, IPlacer<T> placer)
+    public Generator(RandomLoopTimer timer, EnityCreator<T> entityCreator, IPlacer<T> placer)
     {
         _timer = timer;
         _entityCreator = entityCreator;
@@ -240,64 +271,4 @@ public interface IUpdate
     void GameUpdate(float deltaTime);
         
     event Action<IUpdate> UpdateRemoveRequested;
-}
-
-public sealed class GameUpdates : MonoBehaviour, IDisposable
-{
-    private List<IUpdate> _updates;
-    private bool _isStoppedFlag = false;
-
-    private void Awake()
-    {
-        _updates = new List<IUpdate>();
-    }
-
-    public void AddToUpdateList(IUpdate gameUpdate)
-    {
-        _updates.Add(gameUpdate);
-        gameUpdate.UpdateRemoveRequested += OnUpdateRemoveRequested;
-    }
-
-    private void OnUpdateRemoveRequested(IUpdate gameUpdate)
-    {
-        gameUpdate.UpdateRemoveRequested -= OnUpdateRemoveRequested;
-        RemoveFromUpdateList(gameUpdate);
-    }
-
-    private void RemoveFromUpdateList(IUpdate gameUpdate)
-    {
-        var index = _updates.FindIndex(s => s == gameUpdate);
-        var lastIndex = _updates.Count - 1;
-        _updates[index] = _updates[lastIndex];
-        _updates.RemoveAt(lastIndex);
-    }
-
-    private void Update()
-    {
-        if (_isStoppedFlag)
-            return;
-
-        for (var i = 0; i < _updates.Count; i++)
-        {
-            _updates[i].GameUpdate(Time.deltaTime);
-        }
-    }
-
-    public void StopUpdate()
-    {
-        _isStoppedFlag = true;
-    }
-
-    public void ResumeUpdate()
-    {
-        _isStoppedFlag = false;
-    }
-
-    public void Dispose()
-    {
-        _updates.ForEach(gameUpdate =>
-        {
-            gameUpdate.UpdateRemoveRequested -= OnUpdateRemoveRequested;
-        });
-    }
 }

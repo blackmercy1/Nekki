@@ -1,7 +1,7 @@
 using System;
 
 [Serializable]
-public enum MemberTeams
+public enum Team
 {
     Red,
     Blue

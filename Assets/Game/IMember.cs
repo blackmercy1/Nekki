@@ -1,4 +1,4 @@
 public interface IMember
 {
-    MemberTeams Teams { get;}
+    Team Team { get;}
 }

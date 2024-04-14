@@ -1,14 +1,16 @@
-public sealed class Warrior : IEntity, IDamageable
+public sealed class Warrior : IDamageable
 {
-    public CollisionComponent CollisionComponent { get; }
-    public MemberTeams Teams { get;}
-    
-    private IStats<int> _stats;
+    private readonly Team _team;
+    private readonly CollisionComponent _collisionComponent;
+    private readonly IStats<int> _stats;
 
-    public Warrior(MemberTeams teams, CollisionComponent collisionComponent, IStats<int> stats)
+    public Warrior(
+        Team team,
+        CollisionComponent collisionComponent,
+        IStats<int> stats)
     {
-        Teams = teams;
-        CollisionComponent = collisionComponent;
+        _team = team;
+        _collisionComponent = collisionComponent;
         _stats = stats;
     }
     

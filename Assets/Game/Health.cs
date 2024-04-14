@@ -1,4 +1,4 @@
-public struct Health : ITypeStat<int>
+public class Health : ITypeStat<int>
 {
     private readonly string _id;
     private int _value;

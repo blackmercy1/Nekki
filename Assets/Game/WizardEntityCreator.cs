@@ -1,4 +1,4 @@
-public sealed class WizardEntityCreator : EnityCreator
+public sealed class WizardEntityCreator : EnityCreator<Wizard>
 {
     private readonly WizardConfig _wizardConfig;
 
@@ -7,10 +7,10 @@ public sealed class WizardEntityCreator : EnityCreator
         _wizardConfig = wizardConfig;
     }
     
-    public override IEntity CreateEntity()
+    public override Wizard CreateEntity()
     {
         return new Wizard(
-            _wizardConfig.Teams,
+            _wizardConfig.Team,
             _wizardConfig.CollisionComponent,
             _wizardConfig.Stats);
     }

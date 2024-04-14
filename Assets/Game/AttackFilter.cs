@@ -1,21 +1,28 @@
-using System;
 using UnityEngine;
 
-public sealed class AttackFilter
+public abstract class FilterDecorator : IFilter
 {
-    private readonly ICheck _memberCheck;
-    private readonly ICheck _damageableCheck;
+    protected readonly IFilter Child;
 
-    public AttackFilter(ICheck memberCheck, ICheck damageableCheck)
+    public FilterDecorator()
     {
-        _memberCheck = memberCheck;
-        _damageableCheck = damageableCheck;
+        
     }
     
-    public void AddAttackFilter(GameObject gameObject)
+    public FilterDecorator(IFilter child)
     {
-        if (_memberCheck.Check(gameObject))
-            if (_damageableCheck.Check(gameObject))
-                Console.WriteLine();
+        Child = child; 
     }
+    
+    public bool Check(GameObject obj)
+    {
+        var flag = CheckInternal(obj);
+        if (Child != null)
+            flag &= Child.Check(obj);
+
+        return flag;
+    }
+    
+    protected abstract bool CheckInternal(GameObject obj);
 }
+

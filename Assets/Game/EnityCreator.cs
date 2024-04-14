@@ -1,4 +1,4 @@
-public abstract class EnityCreator
+public abstract class EnityCreator<T>
 {
-    public abstract IEntity CreateEntity();
+    public abstract T CreateEntity();
 }
