@@ -4,13 +4,9 @@ public class Stats : IStats<int>
 
     public Stats()
     {
+        _intStats = new GenericStats<int>();
     }
-
-    public Stats(GenericStats<int> intStats)
-    {
-        _intStats = intStats;
-    }
-
+    
     public bool TryGet(string id, out ITypeStat<int> stat)
     {
         return _intStats.TryGet(id, out stat);
