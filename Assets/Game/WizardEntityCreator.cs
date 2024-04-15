@@ -19,7 +19,7 @@ public sealed class WizardEntityCreator : EnityCreator<Wizard>
             .Add(new Health("health", _config.HealthValue))
             .Add(new Damage("damage", _config.DamageValue))
             .Add(new Defence("defence", _config.DefenceValue))
-            .Add(new MovementSpeed("movementSpeed", _config.MovementSpeedValueValue));
+            .Add(new MovementSpeed("movementSpeed", _config.MovementSpeedValue));
         
         return new Wizard(
             _config.Team,

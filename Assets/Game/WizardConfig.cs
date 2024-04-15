@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "WizardConfig", menuName = "ScriptableObject/Configs/WizardConfig")]
 public sealed class WizardConfig : ScriptableObject
@@ -8,9 +7,12 @@ public sealed class WizardConfig : ScriptableObject
     [SerializeField] private int _healthValue;
     [SerializeField] private int _damageValue;
     [SerializeField] private int _defenceValue;
+    [SerializeField] private int _movementSpeedValue;
+
+    public int HealthValue => _healthValue;
+    public int DamageValue => _damageValue;
+    public int DefenceValue => _defenceValue;
+    public int MovementSpeedValue => _movementSpeedValue;
     
-    public IStats<int> Stats => _stats;
     public Team Team => _team;
-    
-    
 }

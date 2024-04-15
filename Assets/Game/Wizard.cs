@@ -1,26 +1,27 @@
 using System;
 using UnityEngine;
 
-public sealed class Wizard : IEntity, IDamageable, IUpdate
+public sealed class Wizard : IDamageable, IUpdate
 {
     public event Action<IUpdate> UpdateRemoveRequested;
-    public CollisionComponent CollisionComponent { get; }
-    public Team Team { get; }
-
-    private IStats<int> _stats;
     
-    public Wizard(Team team, CollisionComponent collisionComponent, IStats<int> stats)
+    private readonly CollisionComponent _collisionComponent;
+    private readonly IStats<int> _stats;
+    private readonly GameObject _gameObject;
+    private readonly Team _teams;
+
+    public Wizard(
+        Team team,
+        CollisionComponent collisionComponent,
+        IStats<int> stats,
+        GameObject gameObject)
     {
-        CollisionComponent = collisionComponent;
-        Team = team;
+        _collisionComponent = collisionComponent;
+        _teams = team;
         _stats = stats;
+        _gameObject = gameObject;
     }
     
-    public void Method()
-    {
-        
-    }
-
     public void TakeDamage(int damagePoints)
     {
         
@@ -28,7 +29,5 @@ public sealed class Wizard : IEntity, IDamageable, IUpdate
 
     public void GameUpdate(float deltaTime)
     {
-        throw new NotImplementedException();
     }
-
 }
