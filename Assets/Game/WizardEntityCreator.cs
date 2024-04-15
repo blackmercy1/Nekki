@@ -1,17 +1,30 @@
+using UnityEngine;
+
 public sealed class WizardEntityCreator : EnityCreator<Wizard>
 {
-    private readonly WizardConfig _wizardConfig;
+    private readonly WizardConfig _config;
 
-    public WizardEntityCreator(WizardConfig wizardConfig)
+    public WizardEntityCreator(WizardConfig config, GameObject prefab)
     {
-        _wizardConfig = wizardConfig;
+        Prefab = prefab;
+        _config = config;
     }
     
     public override Wizard CreateEntity()
     {
+        Prefab.TryGetComponent<CollisionComponent>(out var collisionComponent);
+        var gameObject = Instantiator.InstantiateGameObject(Prefab);
+        
+        var stats = new Stats()
+            .Add(new Health("health", _config.HealthValue))
+            .Add(new Damage("damage", _config.DamageValue))
+            .Add(new Defence("defence", _config.DefenceValue))
+            .Add(new MovementSpeed("movementSpeed", _config.MovementSpeedValueValue));
+        
         return new Wizard(
-            _wizardConfig.Team,
-            _wizardConfig.CollisionComponent,
-            _wizardConfig.Stats);
+            _config.Team,
+            collisionComponent,
+            stats,
+            gameObject);
     }
 }

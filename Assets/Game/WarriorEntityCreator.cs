@@ -3,30 +3,30 @@ using UnityEngine;
 
 public sealed class WarriorEntityCreator : EnityCreator<Warrior>
 {
-    private readonly GameObject _prefab;
     private readonly WarriorConfig _config;
     
     public WarriorEntityCreator(WarriorConfig config, GameObject prefab)
     {
         _config = config;
-        _prefab = prefab;
+        Prefab = prefab;
     }
     
     public override Warrior CreateEntity()
     {
+        Prefab.TryGetComponent<CollisionComponent>(out var collisionComponent);
+        var gameObject = Instantiator.InstantiateGameObject(Prefab);
+        
         var stats = new Stats()
             .Add(new Health("health", _config.HealthValue))
             .Add(new Damage("damage", _config.DamageValue))
             .Add(new Defence("defence", _config.DefenceValue))
             .Add(new MovementSpeed("movementSpeed", _config.MovementSpeedValueValue));
         
-        _prefab.TryGetComponent<CollisionComponent>(out var collisionComponent);
-        var x = 
-        
         return new Warrior(
             _config.Team,
             collisionComponent,
-            stats);
+            stats,
+            gameObject);
     }
 }
 
@@ -61,7 +61,7 @@ public sealed class EnemyGeneratorHandle<T> : AbstractHandler<T>
         {
             var entity = entityCreator.CreateEntity();
             Spawned?.Invoke(entity);
-            return base.Handle(entity);
+            return base.Handle(entityCreator.Prefab);
         }
 
         return default;
@@ -84,7 +84,7 @@ public sealed class PositionHandler<T> : AbstractHandler<T>
 
     public override T Handle(object obj)
     {
-        if (obj is MonoBehaviour gameObject)
+        if (obj is GameObject gameObject)
         {
             var startPosition = _gameArea.GetRandomStartPosition();
             gameObject.transform.position = startPosition;

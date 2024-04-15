@@ -8,19 +8,26 @@ using Random = UnityEngine.Random;
 //todo: Алеша пж удали меня, не забудь и сделай generic
 public sealed class WarriorInstaller : MonoBehaviour
 {
-    [SerializeField] private WarriorConfig _wizardConfig;
+    [SerializeField] private WarriorConfig _warriorConfig;
     [SerializeField] private GameObject _prefab;
 
     private WarriorEntityCreator _entityCreator;
     private GameArea _gameArea;
     private RandomLoopTimer _timer;
-    private bool _isInitialized;
+    private bool _isInitialized = false;
 
     private void Awake() => Install();
     
-    public void Initialize(RandomLoopTimer timer)
+    public void Initialize(RandomLoopTimer timer, GameArea gameArea)
     {
+        if (_isInitialized)
+            return;
+        if (!_isInitialized)
+            _isInitialized = !_isInitialized;
+        
         _timer = timer;
+        _gameArea = gameArea;
+        
         _timer.TimIsUp += TryToSpawnWarrior;
     }
 
@@ -33,19 +40,26 @@ public sealed class WarriorInstaller : MonoBehaviour
 
     private void Install()
     {
-        // DestroyInstaller();
+        DestroyInstaller();
     }
     
     private IHandler<Warrior> HandlerSpawnWarrior()
     {
-        _entityCreator = new WarriorEntityCreator(_wizardConfig, _prefab);
+        _entityCreator = new WarriorEntityCreator(_warriorConfig, _prefab);
+        
         var generatorHandler = new EnemyGeneratorHandle<Warrior>();
         var positionHandler = new PositionHandler<Warrior>(_gameArea);
         
-        return generatorHandler.SetNext(positionHandler);
+        generatorHandler.SetNext(positionHandler);
+        
+        return generatorHandler;
     }
 
-    private void DestroyInstaller() => Destroy(gameObject);
+    private void DestroyInstaller()
+    {
+        _timer.TimIsUp -= TryToSpawnWarrior;
+        Destroy(gameObject);
+    }
 }
 
 public class Generator<T> : IDisposable where T : MonoBehaviour
@@ -189,7 +203,7 @@ public class RandomLoopTimer : IUpdate, IDisposable
     private float _currentInterval;
 
     private float _passedTime;
-    private bool _isStopped = true;
+    private bool _isStopped;
 
     public RandomLoopTimer(FloatRange intervalRange)
     {
