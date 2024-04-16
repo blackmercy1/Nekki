@@ -18,10 +18,10 @@ public class GameCoreController : MonoBehaviour
         var timer = CreateTimer();
         var gameArea = CreateGameArea();
         
-        _gameUpdates.AddToUpdateList(timer);
         _warriorInstaller.Initialize(timer, gameArea);
-        _gameUpdates.ResumeUpdate();
         
+        _gameUpdates.AddToUpdateList(timer);
+        _gameUpdates.ResumeUpdate();
     }
 
     private GameArea CreateGameArea()

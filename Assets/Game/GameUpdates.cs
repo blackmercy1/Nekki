@@ -5,7 +5,7 @@ using UnityEngine;
 public sealed class GameUpdates : MonoBehaviour, IDisposable
 {
     private List<IUpdate> _updates;
-    private bool _isStoppedFlag = false;
+    private bool _isStoppedFlag;
     
     public void AddToUpdateList(IUpdate gameUpdate)
     {

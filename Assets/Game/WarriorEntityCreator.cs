@@ -73,24 +73,39 @@ public interface IPlacer<in T> where T : MonoBehaviour
     void Place(T gameObject);
 }
 
-public sealed class PositionHandler<T> : AbstractHandler<T> 
+public sealed class GameAreaValueGeneratorHandler<T> : AbstractHandler<T> 
 {
     private readonly GameArea _gameArea;
 
-    public PositionHandler(GameArea gameArea)
+    public GameAreaValueGeneratorHandler(GameArea gameArea)
     {
         _gameArea = gameArea;
     }
 
     public override T Handle(object obj)
     {
+        _gameArea.GeneratedValue = _gameArea.GetRandomStartPosition();
+        return base.Handle(obj);
+    }
+}
+
+public sealed class PositionHandler<T> : AbstractHandler<T>
+{
+    private readonly Vector3 _newPosition;
+    
+    public PositionHandler(Vector3 newPosition)
+    {
+        _newPosition = newPosition;
+    }
+    
+    public override T Handle(object obj)
+    {
         if (obj is GameObject gameObject)
         {
-            var startPosition = _gameArea.GetRandomStartPosition();
-            gameObject.transform.position = startPosition;
+            gameObject.transform.position = _newPosition;
             return base.Handle(obj);
         }
-        Debug.LogError($"request is null + value {obj}");
+
         return default;
     }
 }
