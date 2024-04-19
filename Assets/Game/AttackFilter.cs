@@ -1,8 +1,9 @@
+using JetBrains.Annotations;
 using UnityEngine;
 
 public abstract class FilterDecorator : IFilter
 {
-    protected readonly IFilter Child;
+    [CanBeNull] protected readonly IFilter Child;
 
     public FilterDecorator()
     {

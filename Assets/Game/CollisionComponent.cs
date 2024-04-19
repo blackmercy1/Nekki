@@ -1,17 +1,9 @@
 using System;
 using UnityEngine;
 
-[RequireComponent(typeof(Collider))]
 public sealed class CollisionComponent : MonoBehaviour
 {
-    [SerializeField] private Collider _collider;
-    
-    private Action<GameObject> _collisionReaction;
+    public event Action<GameObject> CollisionReaction;
 
-    public void Init(Action<GameObject> collisionReaction)
-    {
-        _collisionReaction = collisionReaction;
-    }
-
-    private void OnCollisionEnter(Collision collision) => _collisionReaction?.Invoke(collision.gameObject);
+    private void OnCollisionEnter(Collision collision) => CollisionReaction?.Invoke(collision.gameObject);
 }
