@@ -7,16 +7,18 @@ using UnityEngine;
 public sealed class WarriorInstaller : MonoBehaviour
 {
     [SerializeField] private WarriorConfig _warriorConfig;
-    [SerializeField] private GameObject _prefab;
-
-    private WarriorEntityCreator _entityCreator;
-    private GameArea _gameArea;
-    private RandomLoopTimer _timer;
-    private bool _isInitialized = false;
-
-    private void Awake() => Install();
     
-    public void Initialize(RandomLoopTimer timer, GameArea gameArea)
+    private WarriorEntityCreator _warriorEntityCreator;
+    private GameUpdates _gameUpdates;
+    private RandomLoopTimer _timer;
+    private GameArea _gameArea;
+    
+    private bool _isInitialized;
+    
+    public void Initialize(
+        RandomLoopTimer timer,
+        GameArea gameArea,
+        GameUpdates gameUpdates)
     {
         if (_isInitialized)
             return;
@@ -25,40 +27,79 @@ public sealed class WarriorInstaller : MonoBehaviour
         
         _timer = timer;
         _gameArea = gameArea;
+        _gameUpdates = gameUpdates;
+
+        var entityGenerator = new EntityGenerator(
+            _timer,
+            _gameArea,
+            _gameUpdates,
+            _warriorConfig);
+    }
+}
+
+public sealed class EntityGenerator : IDisposable
+{
+    private readonly RandomLoopTimer _timer;
+    private readonly GameArea _gameArea;
+    private readonly GameUpdates _gameUpdates;
+    private readonly WarriorEntityCreator _warriorEntityCreator;
+
+    public EntityGenerator(
+        RandomLoopTimer timer,
+        GameArea gameArea,
+        GameUpdates gameUpdates,
+        WarriorConfig warriorConfig)
+    {
+        _timer = timer;
+        _gameArea = gameArea;
+        _gameUpdates = gameUpdates; 
         
-        // это логика находится не в инсталере, сделано для упрощения 
-        _timer.TimIsUp += TryToSpawnWarrior;
+        _timer.TimIsUp += SpawnWarrior;
         _timer.Resume();
-    }
 
-    //todo : сюда можно запихать пул чтобы была проверка на то сколько сейчас врагов на сцене 
-    private void TryToSpawnWarrior()
-    {
-        var handler = HandlerSpawnWarrior();
-        handler.Handle(_entityCreator);
-    }
-
-    private void Install()
-    {
+        _warriorEntityCreator = new WarriorEntityCreator(warriorConfig);
     }
     
-    private IHandler<Warrior> HandlerSpawnWarrior()
+    private void SpawnWarrior()
     {
-        _entityCreator = new WarriorEntityCreator(_warriorConfig, _prefab);
-        
-        var generatorHandler = new EnemyGeneratorHandle<Warrior>();
-        var gameAreaValueGeneratorHandler = new GameAreaValueGeneratorHandler<Warrior>(_gameArea);
-        var positionHandler = new PositionHandler<Warrior>(_gameArea.GeneratedValue);
+        var entity = _warriorEntityCreator.CreateEntity();
+        var handler = SpawnWarriorHandler();
+        handler.Handle(entity);
+    }
+    
+    private IHandler<Warrior> SpawnWarriorHandler()
+    {
+        var startHandler = new StartNode<Warrior>();
+        var updateHandler = new AddToUpdateNode<Warrior>(_gameUpdates);
+        var positionHandler = new PlaceEntityNode<Warrior>(_gameArea);
 
-        generatorHandler.SetNext(gameAreaValueGeneratorHandler).SetNext(positionHandler);
+        startHandler
+            .SetNext(updateHandler)
+            .SetNext(positionHandler);
         
-        return generatorHandler;
+        return startHandler;
     }
 
-    private void DestroyInstaller()
+    public void Dispose()
     {
-        _timer.TimIsUp -= TryToSpawnWarrior;
-        Destroy(gameObject);
+        _timer.TimIsUp -= SpawnWarrior;
+        _timer?.Dispose();
+        _gameUpdates?.Dispose();
+    }
+}
+
+public class GenerateConstantPosition : IPositionGenerator
+{
+    private readonly Vector3 _staticPosition;
+
+    public GenerateConstantPosition(Vector3 staticPosition)
+    {
+        _staticPosition = staticPosition;
+    }
+    
+    public Vector3 GeneratePosition()
+    {
+        return _staticPosition;
     }
 }
 
@@ -117,10 +158,6 @@ public class RandomLoopTimer : IUpdate, IDisposable
     {
         UpdateRemoveRequested?.Invoke(this);
     }
-}
-
-namespace Ranges
-{
 }
 
 public interface IUpdate

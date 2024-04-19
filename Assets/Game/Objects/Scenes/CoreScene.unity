@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657844, g: 0.49641222, b: 0.57481676, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028326, g: 0.22571333, b: 0.30692202, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -273,7 +273,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a342c9eb4cf41fca690a196bd018119, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _wizardConfig: {fileID: 11400000, guid: 097c30c9f5300499e9c8419bf7fc25f6, type: 2}
+  _warriorConfig: {fileID: 0}
   _prefab: {fileID: 5853614105429485888, guid: 25b18cb2063434432a933b2fdf48915f, type: 3}
 --- !u!1 &481458635
 GameObject:
@@ -539,6 +539,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1 &1830038788
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1830038789}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1830038789
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1830038788}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1, y: 313, z: -320}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1906686277
 GameObject:
   m_ObjectHideFlags: 0
@@ -583,8 +614,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39b3e2a830314df3a8d592a537de604a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _prefab: {fileID: 5853614105429485888, guid: e8d09b1f5e97f40b4abea3ff92eef253, type: 3}
   _wizardConfig: {fileID: 11400000, guid: 0dd7c83c1cb1046b08f41ee9729daa99, type: 2}
+  _sceneStartPosition: {fileID: 0}
 --- !u!1 &2144883156
 GameObject:
   m_ObjectHideFlags: 0
@@ -640,3 +671,4 @@ SceneRoots:
   - {fileID: 1361030033}
   - {fileID: 148132572}
   - {fileID: 1621467163}
+  - {fileID: 1830038789}

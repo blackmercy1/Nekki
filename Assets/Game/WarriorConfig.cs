@@ -1,10 +1,10 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "WarriorConfig", menuName = "ScriptableObject/Configs/WarriorConfig")]
 public sealed class WarriorConfig : ScriptableObject
 {
-    [FormerlySerializedAs("_teams")] [SerializeField] private Team team;
+    [SerializeField] private GameObject _prefab;
+    [SerializeField] private Team _team;
     
     // TODO - можно сделать int(можно взять даже тип поменьше, если нам не нужны космические значения)
     // кастомной структорой с валидацией, т.к наши значения с высокой долей вероятности не будут уходить в минус
@@ -15,15 +15,13 @@ public sealed class WarriorConfig : ScriptableObject
     [SerializeField] private int _defenceValue;
     [SerializeField] private int _movementSpeedValue;
 
+    public GameObject Prefab => _prefab;
+    public Team Team => _team;
+    
     public int HealthValue => _healthValue;
     public int DamageValue => _damageValue;
     public int DefenceValue => _defenceValue;
     public int MovementSpeedValueValue => _movementSpeedValue;
-    
-    public IStats<int> Stats => _stats;
-    public Team Team => team;
-    
-    private IStats<int> _stats;
 }
 
 public class MovementSpeed : ITypeStat<int>

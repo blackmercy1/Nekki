@@ -1,5 +1,6 @@
-public interface IEntity : IMember
+using UnityEngine;
+
+public interface IEntity
 {
-    CollisionComponent CollisionComponent { get; }
-    void Method();
+   GameObject Prefab { get; }
 }

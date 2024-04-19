@@ -4,6 +4,7 @@ using UnityEngine;
 //Main объект данного проекта, он являеется корневым и самым высоким в цепочки иерархии 
 public class GameCoreController : MonoBehaviour
 {
+    [SerializeField] private WizardInstaller _wizardInstaller;
     [SerializeField] private WarriorInstaller _warriorInstaller;
     [SerializeField] private GameUpdates _gameUpdates;
     [SerializeField] private Camera _camera;
@@ -13,16 +14,24 @@ public class GameCoreController : MonoBehaviour
     [SerializeField] private Transform _topPoint;
     [SerializeField] private Transform _downPoint;
     
-    private void Awake()
+    private void Awake() => Install();
+
+    private void Install()
     {
-        var timer = CreateTimer();
+        var playerInput = CreatePlayerInputHandler();
         var gameArea = CreateGameArea();
+        var timer = CreateTimer();
         
-        _warriorInstaller.Initialize(timer, gameArea);
-        
-        _gameUpdates.AddToUpdateList(timer);
+        _gameUpdates
+            .Add(timer)
+            .Add(playerInput);
         _gameUpdates.ResumeUpdate();
+        
+        _warriorInstaller.Initialize(timer, gameArea, _gameUpdates);
+        _wizardInstaller.Initialize(playerInput, _gameUpdates);
     }
+
+    private IInputHandler CreatePlayerInputHandler() => new InputFromKeyboard();
 
     private GameArea CreateGameArea()
     {

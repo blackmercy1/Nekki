@@ -17,6 +17,12 @@ public class GenericStats<T> : IStats<T>
     {
         return _stats.TryGetValue(id, out stat);
     }
+    
+    public ITypeStat<T> Get(string id)
+    {
+        TryGet(id, out var stat);
+        return stat;
+    }
 
     public IStats<T> Add(ITypeStat<T> stat)
     {

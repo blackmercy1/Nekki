@@ -1,46 +1,33 @@
+using System;
 using UnityEngine;
 
 public sealed class WizardInstaller : MonoBehaviour
 {
-    [SerializeField] private GameObject _prefab;
-    [SerializeField] private WizardConfig _wizardConfig;
     //должно быть в отдельном конфиге
+    [SerializeField] private WizardConfig _wizardConfig;
     [SerializeField] private Transform _sceneStartPosition;
+
+    private GameUpdates _gameUpdates;
+    private IInputHandler _inputHandler;
     
-    private WizardEntityCreator _entityCreator;
     private bool _isInitialized = false;
 
-    private void Awake() => Install();
-    
-    public void Initialize()
+    public void Initialize(IInputHandler inputHandler, GameUpdates gameUpdates)
     {
         if (_isInitialized)
             return;
         if (!_isInitialized)
             _isInitialized = !_isInitialized;
-    }
 
-    //todo : сюда можно запихать пул чтобы была проверка на то сколько сейчас врагов на сцене 
-    private void GeneratePlayer()
-    {
-        var handler = HandlerSpawnWarrior();
-        handler.Handle(_entityCreator);
-    }
+        _inputHandler = inputHandler;
+        _gameUpdates = gameUpdates;
 
-    private void Install()
-    {
-    }
-    
-    private IHandler<Wizard> HandlerSpawnWarrior()
-    {
-        _entityCreator = new WizardEntityCreator(_wizardConfig, _prefab);
-        
-        var generatorHandler = new EnemyGeneratorHandle<Wizard>();
-        var positionHandler = new PositionHandler<Wizard>(_sceneStartPosition.position);
-        
-        generatorHandler.SetNext(positionHandler);
-        
-        return generatorHandler;
+        var wizardGenerator = new WizardGenerator(
+            _wizardConfig,
+            _inputHandler,
+            _gameUpdates,
+            _sceneStartPosition
+            );
     }
 
     private void DestroyInstaller()
@@ -49,15 +36,85 @@ public sealed class WizardInstaller : MonoBehaviour
     }
 }
 
+public sealed class WizardGenerator
+{
+    private readonly WizardConfig _wizardConfig;
+    private readonly IInputHandler _inputHandler;
+    private readonly GameUpdates _gameUpdates;
+    private readonly Transform _sceneStartPosition;
+
+    public WizardGenerator(
+        WizardConfig wizardConfig,
+        IInputHandler inputHandler,
+        GameUpdates gameUpdates,
+        Transform sceneStartPosition)
+    {
+        _wizardConfig = wizardConfig;
+        _inputHandler = inputHandler;
+        _gameUpdates = gameUpdates;
+        _sceneStartPosition = sceneStartPosition;
+        
+        SpawnWizard();
+    }
+    
+    private void SpawnWizard()
+    {
+        var entity = new WizardEntityCreator(_wizardConfig, _inputHandler).CreateEntity();
+        var handler = CreateWizardHandler();
+        handler.Handle(entity);
+    }
+    
+    //todo : сюда можно запихать пул чтобы была проверка на то сколько сейчас врагов на сцене 
+    
+    private IHandler<Wizard> CreateWizardHandler()
+    {
+        var staticPositionGenerator = new GenerateConstantPosition(_sceneStartPosition.position);
+        
+        var startHandler = new StartNode<Wizard>();
+        var updatable = new AddToUpdateNode<Wizard>(_gameUpdates);
+        var positionHandler = new PlaceEntityNode<Wizard>(staticPositionGenerator);
+        
+        startHandler
+            .SetNext(updatable)
+            .SetNext(positionHandler);
+        
+        return startHandler;
+    }
+}
+
+public class AddToUpdateNode<T> : AbstractHandler<T>
+{
+    private readonly GameUpdates _gameUpdates;
+
+    public AddToUpdateNode(GameUpdates gameUpdates)
+    {
+        _gameUpdates = gameUpdates;
+    }
+    
+    public override T Handle(T obj)
+    {
+        if (obj is IUpdate updatable) 
+            _gameUpdates.Add(updatable);
+        return base.Handle(obj);
+    }
+}
+
 public class InputFromKeyboard : IInputHandler
 {
+    public event Action<IUpdate> UpdateRemoveRequested;
     public Vector3 PlayerInputDirection => _playerInputDirection;
     private Vector3 _playerInputDirection;
     
-    public void GetInput()
+    private void GetInput()
     {
         var horizontalInput = Input.GetAxis("Horizontal");
         var verticalInput = Input.GetAxis("Vertical");
         _playerInputDirection = new Vector3(horizontalInput, 0, verticalInput);
     }
+
+    public void GameUpdate(float deltaTime)
+    {
+        GetInput();
+    }
+
 }

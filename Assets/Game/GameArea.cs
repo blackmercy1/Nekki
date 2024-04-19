@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public sealed class GameArea
-{
-    public Vector3 GeneratedValue { get; set; }
+public sealed class GameArea : IPositionGenerator
+{ 
     public Vector2 Size { get; set; }
     
     private readonly Transform _leftBorder;
@@ -44,12 +43,14 @@ public sealed class GameArea
         };
     }
     
+    public Vector3 GeneratePosition() => GetRandomStartPosition(); 
+    
     public Vector2 GetRandomStartPosition()
     {
         var randomValue = Random.Range(0, _borders.Count - 1);
         var startPosition = GetPosition(_borders[randomValue]);
 
-        _borders.Remove(_borders[randomValue]);
+        // _borders.Remove(_borders[randomValue]);
             
         return startPosition;
     }

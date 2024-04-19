@@ -1,20 +1,18 @@
-using System;
 using UnityEngine;
 
 public sealed class WarriorEntityCreator : EnityCreator<Warrior>
 {
     private readonly WarriorConfig _config;
     
-    public WarriorEntityCreator(WarriorConfig config, GameObject prefab)
+    public WarriorEntityCreator(WarriorConfig config)
     {
         _config = config;
-        Prefab = prefab;
     }
     
     public override Warrior CreateEntity()
     {
-        Prefab.TryGetComponent<CollisionComponent>(out var collisionComponent);
-        var gameObject = Instantiator.InstantiateGameObject(Prefab);
+        _config.Prefab.TryGetComponent<CollisionComponent>(out var collisionComponent);
+        var gameObject = Instantiator.InstantiateGameObject(_config.Prefab);
         
         var stats = new Stats()
             .Add(new Health("health", _config.HealthValue))
@@ -34,7 +32,7 @@ public sealed class WarriorEntityCreator : EnityCreator<Warrior>
 public interface IHandler<T>
 {
     IHandler<T> SetNext(IHandler<T> handler);
-    T Handle(object obj);
+    T Handle(T obj);
 }
 
 public abstract class AbstractHandler<T> : IHandler<T>
@@ -47,66 +45,33 @@ public abstract class AbstractHandler<T> : IHandler<T>
         return _handler;
     }
 
-    public virtual T Handle(object obj) => _handler != null ? _handler.Handle(obj) : default;
+    public virtual T Handle(T obj) => _handler != null ? _handler.Handle(obj) : default;
 }
 
-public sealed class EnemyGeneratorHandle<T> : AbstractHandler<T>
+public sealed class PlaceEntityNode<T> : AbstractHandler<T>
 {
-    public event Action<T> Spawned;
+    private readonly IPositionGenerator _positionGenerator;
     
+    public PlaceEntityNode(IPositionGenerator positionGenerator)
+    {
+        _positionGenerator = positionGenerator;
+    }
     
-    public override T Handle(object obj)
+    public override T Handle(T obj)
     {
-        if (obj is EnityCreator<T> entityCreator)
-        {
-            var entity = entityCreator.CreateEntity();
-            Spawned?.Invoke(entity);
-            return base.Handle(entityCreator.Prefab);
-        }
-
-        return default;
-    }
-}
-
-public interface IPlacer<in T> where T : MonoBehaviour
-{
-    void Place(T gameObject);
-}
-
-public sealed class GameAreaValueGeneratorHandler<T> : AbstractHandler<T> 
-{
-    private readonly GameArea _gameArea;
-
-    public GameAreaValueGeneratorHandler(GameArea gameArea)
-    {
-        _gameArea = gameArea;
-    }
-
-    public override T Handle(object obj)
-    {
-        _gameArea.GeneratedValue = _gameArea.GetRandomStartPosition();
+        if (obj is not IEntity entity) 
+            return default;
+        entity.Prefab.transform.position = _positionGenerator.GeneratePosition();
         return base.Handle(obj);
     }
 }
 
-public sealed class PositionHandler<T> : AbstractHandler<T>
+public interface IPositionGenerator
 {
-    private readonly Vector3 _newPosition;
-    
-    public PositionHandler(Vector3 newPosition)
-    {
-        _newPosition = newPosition;
-    }
-    
-    public override T Handle(object obj)
-    {
-        if (obj is GameObject gameObject)
-        {
-            gameObject.transform.position = _newPosition;
-            return base.Handle(obj);
-        }
+    Vector3 GeneratePosition();
+}
 
-        return default;
-    }
+public sealed class StartNode<T> : AbstractHandler<T>
+{
 }
 

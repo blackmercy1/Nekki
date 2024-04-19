@@ -7,11 +7,12 @@ public sealed class GameUpdates : MonoBehaviour, IDisposable
     private List<IUpdate> _updates;
     private bool _isStoppedFlag;
     
-    public void AddToUpdateList(IUpdate gameUpdate)
+    public List<IUpdate> Add(IUpdate gameUpdate)
     {
         _updates ??= new List<IUpdate>();
         _updates.Add(gameUpdate);
         gameUpdate.UpdateRemoveRequested += OnUpdateRemoveRequested;
+        return _updates;
     }
 
     private void OnUpdateRemoveRequested(IUpdate gameUpdate)

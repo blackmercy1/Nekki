@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e945bcf59f14c7da6d84b040baf7c2a, type: 3}
   m_Name: WarriorConfig
   m_EditorClassIdentifier: 
-  team: 0
+  _prefab: {fileID: 5853614105429485888, guid: 25b18cb2063434432a933b2fdf48915f, type: 3}
+  _team: 0
   _healthValue: 10
   _damageValue: 5
   _defenceValue: 5

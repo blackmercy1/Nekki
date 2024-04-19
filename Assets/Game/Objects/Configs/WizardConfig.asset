@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfc1cac049914035a4cc35151c537ed7, type: 3}
   m_Name: WizardConfig
   m_EditorClassIdentifier: 
-  _collisionComponent: {fileID: 5120613994199118668, guid: e8d09b1f5e97f40b4abea3ff92eef253, type: 3}
-  _teams: 1
+  _prefab: {fileID: 5853614105429485888, guid: e8d09b1f5e97f40b4abea3ff92eef253, type: 3}
+  _team: 0
   _healthValue: 50
   _damageValue: 10
   _defenceValue: 3
+  _movementSpeedValue: 10
