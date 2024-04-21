@@ -1,68 +1,67 @@
 using System;
-using Game;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public sealed class Wizard : IDamageable, IUpdate, IEntity, IDisposable, IMember
+public sealed class Wizard : MonoBehaviour, IDamageable, IUpdate, IDisposable, IMember
 {
-    public event Action Died;
     public event Action<IUpdate> UpdateRemoveRequested;
-    public GameObject Prefab { get; }
-    
-    private readonly CollisionComponent _collisionComponent;
-    private readonly IMovementHandler _movementHandler;
-    private readonly IInputHandler _inputHandler;
-    private readonly ITypeStat<int> _healthStat;
-    
-    private readonly ITypeStat<int> _defenceStat;
-    private readonly IStats<int> _stats;
-    private readonly Team _teams;
+    public event Action Died;
 
-    private IAttack _attackComponent;
+    public Team TeamMember => _teamMember;
+    
+    private CollisionComponent _collisionComponent;
+    private IMovementHandler _movementHandler;
+    private IPlayerInputHandler _inputHandler;
+    private ITypeStat<int> _healthStat;
 
-    public Wizard(
-        Team team,
+    private IAttack _attack;
+    private ITypeStat<int> _defenceStat;
+    private IStats<int> _stats;
+    
+    private Team _teamMember;
+    
+    public void Initialize(
+        Team teamMember,
         CollisionComponent collisionComponent,
         IStats<int> stats,
         IMovementHandler movementHandler,
-        GameObject gameObject)
+        IPlayerInputHandler inputHandler,
+        MeleeAttack attack)
     {
+        _teamMember = teamMember;
         _collisionComponent = collisionComponent;
-        _teams = team;
         _stats = stats;
         _movementHandler = movementHandler;
         
-        Prefab = gameObject;
+        _inputHandler = inputHandler;
+        _attack = attack;
         
         _healthStat = _stats.Get(StatsConstantIdentifiers.HealthStat);
         _defenceStat = stats.Get(StatsConstantIdentifiers.DefenceStat);
         
-        InitializeAttackFilter();
         collisionComponent.CollisionReaction += Attack;
     }
+    
 
-    ~Wizard()
+    private void Attack(GameObject obj)
     {
-        Dispose();
-    }
-
-    private void InitializeAttackFilter()
-    {
-        var damageableFilter = new DamageableFilter();
-        var memberFilter = new MemberFilter(damageableFilter);
-        _attackComponent = new MeleeAttack(memberFilter);
-    }
-
-    private void Attack(GameObject gameObject)
-    {
-        _attackComponent.Attack(gameObject);
+        _attack.Attack(obj);
     }
 
     public void TakeDamage(int damagePoints)
     {
         _healthStat.Add(-damagePoints * _defenceStat.GetValue());
-        
+
         if (_healthStat.GetValue() <= 0)
-            Died?.Invoke();
+            DestroySelf();
+    }
+
+    private void DestroySelf()
+    {
+        Died?.Invoke();
+        Dispose();
+        Destroy(gameObject);
     }
 
     public void GameUpdate(float deltaTime)
@@ -76,62 +75,164 @@ public sealed class Wizard : IDamageable, IUpdate, IEntity, IDisposable, IMember
     }
 }
 
-public interface IAttack
+public interface IStateSwitcher
 {
-    void Attack(GameObject gameObject);
+    void SwitchState<T>() where T : AbilityBaseState;
 }
 
-public class MeleeAttack : IAttack
+public abstract class AbilityBaseState
 {
-    private readonly FilterDecorator _filter;
-    private readonly int _attackStat;
+    protected readonly IStateSwitcher _stateSwitcher;
 
-    public MeleeAttack(FilterDecorator filter)
+    protected AbilityBaseState(IStateSwitcher stateSwitcher)
     {
-        _filter = filter;
+        _stateSwitcher = stateSwitcher;
     }
 
-    public void Attack(GameObject gameObject)
+    public virtual void Start()
     {
-        if (_filter.Check(gameObject))
-        {
-            gameObject.TryGetComponent<IDamageable>(out var damageable);
-            //фильтр уже проверил на idamageable, поэтому ? не требуется
-            damageable.TakeDamage(10);
-        }
+        
+    }
+
+    public virtual void Stop()
+    {
     }
 }
 
-public class PlayerMovementHandler : IMovementHandler
+public class CastAbilityState : AbilityBaseState
 {
-    private readonly IInputHandler _inputHandler;
-    private readonly Transform _transform;
-    private readonly int _movementSpeed;
+    private readonly AbilityHolder _abilityHolder;
+    private readonly GameUpdates _gameUpdates;
 
-    public PlayerMovementHandler(
-        IInputHandler inputHandler,
-        Transform transform,
-        int movementSpeed)
+    public CastAbilityState(
+        IStateSwitcher stateSwitcher,
+        AbilityHolder abilityHolder,
+        GameUpdates gameUpdates) 
+        : base(stateSwitcher)
     {
-        _inputHandler = inputHandler;
-        _transform = transform;
-        _movementSpeed = movementSpeed;
+        _abilityHolder = abilityHolder;
+        _gameUpdates = gameUpdates;
+    }
+
+    public override void Start()
+    {
+        var ability = _abilityHolder.GetSpell();
+        _gameUpdates.Add(ability);
+        _stateSwitcher.SwitchState<IdleState>();
+    }
+
+    public override void Stop()
+    {
+    }
+}
+
+public class IdleState : AbilityBaseState
+{
+    private readonly IStateSwitcher _stateSwitcher;
+    private readonly IPlayerInputHandler _playerInputHandler;
+
+    public IdleState(
+        IStateSwitcher stateSwitcher,
+        IPlayerInputHandler playerInputHandler)
+        : base(stateSwitcher)
+    {
+        _stateSwitcher = stateSwitcher;
+        _playerInputHandler = playerInputHandler;
+    }
+
+    public override void Start()
+    {
+        Debug.LogError("подписка");
+        _playerInputHandler.AbilityActivated += Cast;
+        _playerInputHandler.AbilityNextActivated += SetNextSpellState;
+        _playerInputHandler.AbilityPreviousActivated += SetPreviousSpellState;
     }
     
-    public void Move(float fixedDeltaTime)
+    public override void Stop()
     {
-        var input = _inputHandler.PlayerInputDirection;
-        _transform.position += input * (_movementSpeed * fixedDeltaTime);
+        Debug.LogError("атписка");
+        _playerInputHandler.AbilityActivated -= Cast;
+        _playerInputHandler.AbilityNextActivated -= SetNextSpellState;
+        _playerInputHandler.AbilityPreviousActivated -= SetPreviousSpellState;
+    }
+    
+    private void SetNextSpellState() => _stateSwitcher.SwitchState<SetNextSpellState>();
+    private void SetPreviousSpellState() => _stateSwitcher.SwitchState<SetPreviousSpellState>();
+    private void Cast() => _stateSwitcher.SwitchState<CastAbilityState>(); 
+}
+
+public class SetNextSpellState : AbilityBaseState
+{
+    private readonly IStateSwitcher _stateSwitcher;
+    private readonly AbilityHolder _holder;
+
+    public SetNextSpellState(
+        IStateSwitcher stateSwitcher,
+        AbilityHolder holder) : 
+        base(stateSwitcher)
+    {
+        _stateSwitcher = stateSwitcher;
+        _holder = holder;
+    }
+
+    public override void Start()
+    {
+        _holder.SetNextAbility();
+        _stateSwitcher.SwitchState<IdleState>();
     }
 }
 
-public interface IMovementHandler
+public class SetPreviousSpellState : AbilityBaseState
 {
-    public void Move(float fixedDeltaTime);
+    private readonly IStateSwitcher _stateSwitcher;
+    private readonly AbilityHolder _holder;
+
+    public SetPreviousSpellState(
+        IStateSwitcher stateSwitcher,
+        AbilityHolder holder) : 
+        base(stateSwitcher)
+    {
+        _stateSwitcher = stateSwitcher;
+        _holder = holder;
+    }
+
+    public override void Start()
+    {
+        _holder.SetPreviousAbility();
+        _stateSwitcher.SwitchState<IdleState>();
+    }
 }
 
-public interface IInputHandler : IUpdate
+public class AbilityContext : IStateSwitcher
 {
-    Vector3 PlayerInputDirection { get; }
-    void GetInput(){}
+    private readonly GameUpdates _gameUpdates;
+    private readonly List<AbilityBaseState> _allStates;
+    
+    private AbilityBaseState _currentState;
+
+    public AbilityContext(
+        AbilityHolder abilityHolder,
+        IPlayerInputHandler playerInputHandler, 
+        GameUpdates gameUpdates)
+    {
+        _gameUpdates = gameUpdates;
+        _allStates = new List<AbilityBaseState>
+        {
+            new IdleState(this, playerInputHandler),
+            new CastAbilityState(this, abilityHolder, _gameUpdates),
+            new SetNextSpellState(this, abilityHolder),
+            new SetPreviousSpellState(this, abilityHolder)
+        };
+        
+        _currentState = _allStates[0];
+        _currentState.Start();
+    }
+    
+    public void SwitchState<T>() where T : AbilityBaseState
+    {
+        _currentState.Stop();
+        _currentState = _allStates.FirstOrDefault(t => t is T);
+        _currentState.Start();
+    }
 }
+

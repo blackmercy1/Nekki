@@ -1,9 +1,8 @@
-using JetBrains.Annotations;
 using UnityEngine;
 
 public abstract class FilterDecorator : IFilter
-{
-    [CanBeNull] protected readonly IFilter Child;
+{ 
+    protected readonly IFilter Child;
 
     public FilterDecorator()
     {
@@ -26,4 +25,3 @@ public abstract class FilterDecorator : IFilter
     
     protected abstract bool CheckInternal(GameObject obj);
 }
-

@@ -1,32 +1,45 @@
 using System;
 using UnityEngine;
 
-public sealed class Warrior : IDamageable, IEntity, IMember, IUpdate, IDisposable
+public sealed class Warrior : MonoBehaviour, IDamageable, IMember, IUpdate, IDisposable
 {
     public event Action<IUpdate> UpdateRemoveRequested;
-    
-    public GameObject Prefab => _prefab;
-    
-    private readonly Team _team;
-    private readonly CollisionComponent _collisionComponent;
-    private readonly IStats<int> _stats;
-    private readonly GameObject _prefab;
 
-    public Warrior(
+    public Team TeamMember => _teamMemberMember;
+    
+    private CollisionComponent _collisionComponent;
+    private ITypeStat<int> _defenceStat;
+    private ITypeStat<int> _healthStat;
+    private IStats<int> _stats;
+    
+    private Team _teamMemberMember;
+
+    public void Initialize(
         Team team,
         CollisionComponent collisionComponent,
-        IStats<int> stats, 
-        GameObject prefab)
+        IStats<int> stats)
     {
-        _team = team;
+        _teamMemberMember = team;
         _collisionComponent = collisionComponent;
         _stats = stats;
-        _prefab = prefab;
+
+        _healthStat = _stats.Get(StatsConstantIdentifiers.HealthStat);
+        _defenceStat = stats.Get(StatsConstantIdentifiers.DefenceStat);
     }
     
 
     public void TakeDamage(int damagePoints)
     {
+        _healthStat.Add(-damagePoints * _defenceStat.GetValue());
+
+        if (_healthStat.GetValue() <= 0)
+            DestroySelf();
+    }
+
+    private void DestroySelf()
+    {
+        Destroy(gameObject);
+        Dispose();
     }
 
     public void GameUpdate(float deltaTime)
@@ -35,6 +48,6 @@ public sealed class Warrior : IDamageable, IEntity, IMember, IUpdate, IDisposabl
     }
     public void Dispose()
     {
-        throw new NotImplementedException();
     }
+
 }

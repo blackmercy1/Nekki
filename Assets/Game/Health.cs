@@ -36,7 +36,3 @@ public class Health : ITypeStat<int>
         return _id;
     }
 }
-
-public class Died
-{
-}

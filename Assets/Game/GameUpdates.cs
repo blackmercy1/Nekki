@@ -6,7 +6,12 @@ public sealed class GameUpdates : MonoBehaviour, IDisposable
 {
     private List<IUpdate> _updates;
     private bool _isStoppedFlag;
-    
+
+    private void Awake()
+    {
+        _updates ??= new List<IUpdate>();
+    }
+
     public List<IUpdate> Add(IUpdate gameUpdate)
     {
         _updates ??= new List<IUpdate>();
@@ -34,9 +39,9 @@ public sealed class GameUpdates : MonoBehaviour, IDisposable
         if (_isStoppedFlag)
             return;
 
-        for (var i = 0; i < _updates.Count; i++)
+        for (var i = 0; i < _updates?.Count; i++)
         {
-            _updates[i].GameUpdate(Time.deltaTime);
+            _updates?[i].GameUpdate(Time.deltaTime);
         }
     }
 

@@ -15,7 +15,7 @@ namespace Game
 
         protected override bool CheckInternal(GameObject obj)
         {
-            return Child != null && obj.TryGetComponent<IDamageable>(out _) && Child.Check(obj);
+            return obj.TryGetComponent<IDamageable>(out _);
         }
     }
 }

@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54f8b37ead854e9f93ff0507534abd89, type: 3}
+  m_Name: FireAbilityConfig
+  m_EditorClassIdentifier: 
+  _rangedAbilityPrefab: {fileID: -1673556995169943239, guid: 736c47e24d1de41b3a590de3a8930874, type: 3}
+  _flySpeed: 5

@@ -31,7 +31,7 @@ public class GameCoreController : MonoBehaviour
         _wizardInstaller.Initialize(playerInput, _gameUpdates);
     }
 
-    private IInputHandler CreatePlayerInputHandler() => new InputFromKeyboard();
+    private IPlayerInputHandler CreatePlayerInputHandler() => new InputFromKeyboard();
 
     private GameArea CreateGameArea()
     {
