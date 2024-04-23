@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: RangedAbilityConfig
   m_EditorClassIdentifier: 
   _rangedAbilityPrefab: {fileID: 4504421770651885465, guid: 6564ada4e9ea2499aabd6e850410d168, type: 3}
-  _flySpeed: 5
+  _flySpeed: 10
+  _damage: 10

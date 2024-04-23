@@ -17,4 +17,4 @@ MonoBehaviour:
   _healthValue: 10
   _damageValue: 5
   _defenceValue: 5
-  _movementSpeedValue: 5
+  _movementSpeedValue: 1
