@@ -22,21 +22,17 @@ namespace Game.Systems.AbilitySystem
         public void SetNextAbility()
         {
             if (_currentAbilityIndex + 1 > _abilityCreators.Count - 1)
-            {
                 ChangeIndexAbility(0);
-            }
-
-            ChangeIndexAbility(_currentAbilityIndex + 1);
+            else
+                ChangeIndexAbility(_currentAbilityIndex + 1);
         }
 
         public void SetPreviousAbility()
         {
             if (_currentAbilityIndex - 1 < 0)
-            {
                 ChangeIndexAbility(_abilityCreators.Count - 1);
-            }
-
-            ChangeIndexAbility(_currentAbilityIndex - 1);
+            else
+                ChangeIndexAbility(_currentAbilityIndex - 1);
         }
 
         private void ChangeIndexAbility(int index)

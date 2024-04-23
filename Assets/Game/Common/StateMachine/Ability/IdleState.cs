@@ -20,7 +20,6 @@ namespace Game.Common.StateMachine.Ability
 
         public override void Start()
         {
-            Debug.LogError("подписка");
             _playerInputHandler.AbilityActivated += Cast;
             _playerInputHandler.AbilityNextActivated += SetNextSpellState;
             _playerInputHandler.AbilityPreviousActivated += SetPreviousSpellState;
@@ -28,7 +27,6 @@ namespace Game.Common.StateMachine.Ability
     
         public override void Stop()
         {
-            Debug.LogError("атписка");
             _playerInputHandler.AbilityActivated -= Cast;
             _playerInputHandler.AbilityNextActivated -= SetNextSpellState;
             _playerInputHandler.AbilityPreviousActivated -= SetPreviousSpellState;
