@@ -1,10 +1,10 @@
 using System;
 using Game.Common.Ranges;
-using Game.Core.Input.Updates;
+using Game.Core.Updates;
 
 namespace Game.Common.Timer
 {
-    public class RandomLoopTimer : IUpdate, IDisposable
+    public class RandomLoopTimer : IUpdate
     {
         public event Action TimIsUp;
         public event Action<IUpdate> UpdateRemoveRequested;
@@ -20,12 +20,7 @@ namespace Game.Common.Timer
             _currentInterval = _intervalRange.GetRandomValue();
         }
 
-        ~RandomLoopTimer()
-        {
-            Dispose();
-        }
-
-        public void Resume()
+        public void Start()
         {
             _isStopped = false;
         }
@@ -33,6 +28,7 @@ namespace Game.Common.Timer
         public void Stop()
         {
             _isStopped = true;
+            UpdateRemoveRequested?.Invoke(this);
         }
 
         public void GameUpdate(float deltaTime)
@@ -53,11 +49,6 @@ namespace Game.Common.Timer
             _passedTime = 0;
             _currentInterval = _intervalRange.GetRandomValue();
             TimIsUp?.Invoke();
-        }
-
-        public void Dispose()
-        {
-            UpdateRemoveRequested?.Invoke(this);
         }
     }
 }

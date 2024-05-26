@@ -1,4 +1,4 @@
-using Game.Core.Input.Updates;
+using Game.Core.Updates;
 using UnityEngine;
 
 namespace Game.Common.ResponabilityChain

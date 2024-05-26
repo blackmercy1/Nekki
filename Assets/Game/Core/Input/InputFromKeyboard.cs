@@ -1,5 +1,5 @@
 using System;
-using Game.Core.Input.Updates;
+using Game.Core.Updates;
 using UnityEngine;
 
 namespace Game.Core.Input
@@ -15,6 +15,13 @@ namespace Game.Core.Input
     
         private Vector3 _playerInputDirection;
 
+        public void GameUpdate(float deltaTime)
+        {
+            GetMovementInput();
+            GetAbilityInput();
+            GetAbilitySwapInput();
+        }
+        
         private void GetMovementInput()
         {
             var horizontalInput = UnityEngine.Input.GetAxis("Horizontal");
@@ -24,8 +31,6 @@ namespace Game.Core.Input
 
         private void GetAbilityInput()
         {
-            if (AbilityActivated == null)
-                return;
             if (UnityEngine.Input.GetKeyDown(KeyCode.X))
                 AbilityActivated?.Invoke();
         }
@@ -36,13 +41,6 @@ namespace Game.Core.Input
                 AbilityPreviousActivated?.Invoke();
             if (UnityEngine.Input.GetKeyDown(KeyCode.E))
                 AbilityNextActivated?.Invoke();
-        }
-
-        public void GameUpdate(float deltaTime)
-        {
-            GetAbilitySwapInput();
-            GetMovementInput();
-            GetAbilityInput();
         }
     }
 }

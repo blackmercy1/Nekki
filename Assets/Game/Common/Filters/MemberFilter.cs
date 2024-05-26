@@ -4,9 +4,7 @@ namespace Game.Common.Filters
 {
     public class MemberFilter : FilterDecorator
     {
-        //Проверка на то к какой команде относится наш объект
         private readonly Team _teamMember;
-        // если флаг == true, то проверка идет на opposite команды 
         private readonly bool _differenceFlag;
 
         public MemberFilter() : base()

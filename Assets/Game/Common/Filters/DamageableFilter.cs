@@ -1,4 +1,4 @@
-﻿using Game.Systems.AttackSystem;
+﻿using Game.Attack;
 using UnityEngine;
 
 namespace Game.Common.Filters

@@ -1,4 +1,4 @@
-using Game.Common.StateMachine.Ability;
+using Game.Abilities.States;
 
 namespace Game.Common.Stats
 {

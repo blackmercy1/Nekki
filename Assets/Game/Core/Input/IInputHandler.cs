@@ -1,4 +1,4 @@
-using Game.Core.Input.Updates;
+using Game.Core.Updates;
 
 namespace Game.Core.Input
 {
